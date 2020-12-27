@@ -16,7 +16,7 @@ module.exports = function (injectedStore) {
             .then(sonIguales => {
                 if (sonIguales === true) {
                     // Generar token;
-                    return auth.sign(data)
+                    return auth.sign({ ...data })
                 } else {
                     throw new Error('Informacion invalida');
                 }
@@ -33,7 +33,7 @@ module.exports = function (injectedStore) {
         }
 
         if (data.password) {
-            authData.password = await bcrypt.hash(data.password, 5); // Guardamos la contraseña hasheada con bcrypt
+            authData.password = await bcrypt.hash(data.password, 5);
         }
 
         return store.upsert(TABLA, authData);

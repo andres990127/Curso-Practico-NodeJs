@@ -3,15 +3,28 @@ const auth = require('../auth');
 
 const TABLA = 'user';
 
-// El controlador se declara como una función que recibe un store inyectado, esto para facilitar el cambio de BD cuando sea necesario
-module.exports = function (injectedStore) {
+module.exports = function (injectedStore, injectedCache) {
     let store = injectedStore;
+    let cache = injectedCache;
     if (!store) {
         store = require('../../../store/dummy');
     }
+    if (!cache) {
+        cache = require('../../../store/dummy');
+    }
 
-    function list() {
-        return store.list(TABLA);
+    async function list() {
+        let users = await cache.list(TABLA);
+
+        if (!users) {
+            console.log('No estaba en caché. Buscado en DB')
+            users = await store.list(TABLA);
+            cache.upsert(TABLA, users);
+        } else {
+            console.log('Nos traemos datos de cache');
+        }
+        
+        return users;
     }
 
     function get(id) {
@@ -41,9 +54,26 @@ module.exports = function (injectedStore) {
         return store.upsert(TABLA, user);
     }
 
+    function follow(from, to) {
+        return store.upsert(TABLA + '_follow', {
+            user_from: from,
+            user_to: to,
+        });
+    }
+
+    async function following(user) {
+        const join = {}
+        join[TABLA] = 'user_to'; // { user: 'user_to' }
+        const query = { user_from: user };
+		
+		return await store.query(TABLA + '_follow', query, join);
+	}
+
     return {
         list,
         get,
         upsert,
+        follow,
+        following,
     };
 }

@@ -1,4 +1,3 @@
-// Creación de base de datos falsa
 const db = {
     'user': [
         { id: '1', name: 'Carlos' },
@@ -42,4 +41,4 @@ module.exports = {
     upsert,
     remove,
     query,
-}
+};
